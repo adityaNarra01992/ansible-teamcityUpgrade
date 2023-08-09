@@ -1,0 +1,46 @@
+---
+# tasks file for teamcity-upgrade
+
+- name: Take backup of TeamCity projects
+  template:
+    src: backup_script.sh.j2
+    dest: "{{ teamcity_installation_dir }}/backup_script.sh"
+  become: true
+
+- name: Execute backup script
+  command: "{{ teamcity_installation_dir }}/backup_script.sh"
+  become: true
+
+- name: Stop TeamCity service
+  systemd:
+    name: teamcity
+    state: stopped
+  become: true
+
+- name: Download TeamCity {{ teamcity_version }}
+  get_url:
+    url: "https://download.jetbrains.com/teamcity/TeamCity-{{ teamcity_version }}.tar.gz"
+    dest: "{{ teamcity_installation_dir }}/TeamCity-{{ teamcity_version }}.tar.gz"
+  become: true
+
+- name: Extract TeamCity {{ teamcity_version }}
+  unarchive:
+    src: "{{ teamcity_installation_dir }}/TeamCity-{{ teamcity_version }}.tar.gz"
+    dest: "{{ teamcity_installation_dir }}"
+    copy: yes
+  become: true
+  when: "'TeamCity-{{ teamcity_version }}' not in teamcity_version_current.stdout"
+
+- name: Copy TeamCity service file
+  template:
+    src: teamcity.service.j2
+    dest: "/etc/systemd/system/teamcity.service"
+  become: true
+
+
+- name: Start TeamCity service
+  systemd:
+    name: teamcity
+    state: started
+  become: true
+

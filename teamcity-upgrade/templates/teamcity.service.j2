@@ -1,0 +1,14 @@
+[Unit]
+Description=TeamCity Continuous Integration Server
+After=syslog.target network.target
+
+[Service]
+Type=simple
+ExecStart={{ teamcity_installation_dir }}/bin/runAll.sh start
+ExecStop={{ teamcity_installation_dir }}/bin/runAll.sh stop
+User=teamcity
+
+[Install]
+WantedBy=multi-user.target
+
+
